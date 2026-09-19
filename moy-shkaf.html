@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EEF0F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1114" media="(prefers-color-scheme: dark)">
+<title>Мой шкаф</title>
+<meta name="description" content="Гардероб с описанием вещей и конструктор образов: выбираешь одну вещь — остаются только подходящие.">
+<style>
+/* ==========================================================
+   Мой шкаф — дизайн-система в духе iOS 26 (Liquid Glass)
+   Токены → стекло → компоненты → раскладка → движение
+   ========================================================== */
+
+:root{
+  /* фон и стекло (светлая тема) */
+  --bg:#EEF0F3;
+  --blob-1:#C9D7E8;   /* пыльно-голубой */
+  --blob-2:#E6D9C8;   /* stone */
+  --blob-3:#D9C7BC;   /* шоколад, разбавленный */
+  --blob-4:#F4F1EA;   /* молочный */
+  --glass:rgba(255,255,255,.58);
+  --glass-strong:rgba(255,255,255,.74);
+  --glass-line:rgba(255,255,255,.75);
+  --glass-shadow:0 10px 30px rgba(28,28,30,.08), 0 1px 0 rgba(255,255,255,.6) inset;
+  --card:rgba(255,255,255,.55);
+  --fill:rgba(120,120,128,.12);   /* iOS systemFill */
+  --fill-2:rgba(120,120,128,.20);
+  --sep:rgba(60,60,67,.14);
+  /* текст */
+  --label:#1C1C1E;
+  --label-2:rgba(60,60,67,.62);
+  --label-3:rgba(60,60,67,.36);
+  --on-tint:#FFFFFF;
+  /* акценты */
+  --tint:#3E6491;              /* пыльно-синий: интерактив */
+  --tint-soft:rgba(62,100,145,.14);
+  --brand-2:#26405F;
+  --tabbar-h:66px;
+  --ink:#1C1C1E;               /* выбранное */
+  --ok:#3D7A55;
+  --warn:#A4463F;
+  --warn-bg:rgba(164,70,63,.12);
+  /* типографика — системный шрифт, как в iOS */
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Inter,Roboto,system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  /* радиусы iOS 26 */
+  --r-xl:28px; --r-l:22px; --r-m:16px; --r-s:12px; --r-pill:999px;
+  /* движение */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --spring:cubic-bezier(.34,1.3,.5,1);
+  --t-fast:.18s; --t:.28s; --t-slow:.42s;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1114;
+    --blob-1:#1E2B3B; --blob-2:#2E2822; --blob-3:#2A1F1A; --blob-4:#1A1C20;
+    --glass:rgba(36,38,44,.55); --glass-strong:rgba(36,38,44,.78);
+    --glass-line:rgba(255,255,255,.10);
+    --glass-shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.06) inset;
+    --card:rgba(44,46,52,.5);
+    --fill:rgba(120,120,128,.24); --fill-2:rgba(120,120,128,.34);
+    --sep:rgba(84,84,88,.5);
+    --label:#F2F2F7; --label-2:rgba(235,235,245,.62); --label-3:rgba(235,235,245,.32);
+    --on-tint:#0F1114;
+    --tint:#9DB9DA; --tint-soft:rgba(157,185,218,.16); --brand-2:#4A6C95;
+    --ink:#F2F2F7;
+    --ok:#8FD0A5; --warn:#E39A93; --warn-bg:rgba(227,154,147,.14);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1114;
+  --blob-1:#1E2B3B; --blob-2:#2E2822; --blob-3:#2A1F1A; --blob-4:#1A1C20;
+  --glass:rgba(36,38,44,.55); --glass-strong:rgba(36,38,44,.78);
+  --glass-line:rgba(255,255,255,.10);
+  --glass-shadow:0 10px 30px rgba(0,0,0,.35), 0 1px 0 rgba(255,255,255,.06) inset;
+  --card:rgba(44,46,52,.5);
+  --fill:rgba(120,120,128,.24); --fill-2:rgba(120,120,128,.34);
+  --sep:rgba(84,84,88,.5);
+  --label:#F2F2F7; --label-2:rgba(235,235,245,.62); --label-3:rgba(235,235,245,.32);
+  --on-tint:#0F1114;
+  --tint:#9DB9DA; --tint-soft:rgba(157,185,218,.16); --brand-2:#4A6C95;
+  --ink:#F2F2F7;
+  --ok:#8FD0A5; --warn:#E39A93; --warn-bg:rgba(227,154,147,.14);
+  color-scheme:dark;
+}
+
+/* ---------- база ---------- */
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:84px;scroll-padding-bottom:200px}
+body{margin:0;background:var(--bg);color:var(--label);font:400 16px/1.45 var(--font);-webkit-font-smoothing:antialiased;padding-block:0 calc(190px + env(safe-area-inset-bottom,0px));padding-inline:16px;min-height:100%}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:34px;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:22px;line-height:1.2}
+h3{font-size:17px;line-height:1.3;font-weight:600}
+p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tint);outline-offset:2px;border-radius:var(--r-s)}
+.footnote{font-size:13px;color:var(--label-2)}
+.caption{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--label-2)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- фон: размытые пятна ---------- */
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--bg)}
+.bg span{position:absolute;border-radius:50%;filter:blur(90px);opacity:.9;will-change:transform}
+.bg .b1{width:60vmax;height:60vmax;left:-15vmax;top:-20vmax;background:var(--blob-1)}
+.bg .b2{width:50vmax;height:50vmax;right:-15vmax;top:10vmax;background:var(--blob-2)}
+.bg .b3{width:45vmax;height:45vmax;left:20vmax;bottom:-20vmax;background:var(--blob-3)}
+.bg .b4{width:40vmax;height:40vmax;right:5vmax;bottom:-10vmax;background:var(--blob-4)}
+@media (prefers-reduced-motion:no-preference){
+  .bg .b1{animation:drift 26s ease-in-out infinite alternate}
+  .bg .b2{animation:drift 32s ease-in-out infinite alternate-reverse}
+  .bg .b3{animation:drift 38s ease-in-out infinite alternate}
+}
+@keyframes drift{to{transform:translate(6vmax,4vmax)}}
+
+/* ---------- стекло ---------- */
+.glass{background:var(--glass);-webkit-backdrop-filter:blur(28px) saturate(170%);backdrop-filter:blur(28px) saturate(170%);border:1px solid var(--glass-line);box-shadow:var(--glass-shadow)}
+.glass-strong{background:var(--glass-strong)}
+
+/* ---------- шапка ---------- */
+.topbar{position:sticky;top:0;z-index:30;margin-inline:-16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-width:0 0 1px;border-radius:0}
+.brand{display:flex;align-items:center;gap:10px;color:var(--label);text-decoration:none;border-radius:var(--r-m);padding:2px 6px 2px 2px;margin-left:-2px;-webkit-tap-highlight-color:transparent;transition:transform var(--t-fast) var(--ease)}
+.brand:active{transform:scale(.97)}
+.brand-ic{--tint:#3E6491;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(150deg,var(--tint),var(--brand-2));box-shadow:0 4px 12px rgba(38,64,98,.28),inset 0 1px 0 rgba(255,255,255,.35)}
+.brand-ic svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.brand-t{display:flex;flex-direction:column;line-height:1.15}
+.brand-n{font-size:19px;font-weight:700;letter-spacing:-.015em}
+.topbar .sub{font-size:12px;color:var(--label-2)}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:22px;padding-top:18px}
+.hero{display:flex;flex-direction:column;gap:6px;padding:8px 4px}
+.hero p{color:var(--label-2);max-width:60ch;font-size:15px}
+
+/* ---------- сегментированный контрол ---------- */
+.seg{position:relative;display:inline-flex;gap:2px;padding:3px;border-radius:var(--r-pill);background:var(--fill);max-width:100%;overflow:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{position:relative;z-index:1;flex:1 0 auto;border:0;background:transparent;padding:7px 13px;border-radius:var(--r-pill);font-size:13.5px;font-weight:500;color:var(--label-2);white-space:nowrap;cursor:pointer;transition:color var(--t) var(--ease);-webkit-tap-highlight-color:transparent}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{color:var(--label)}
+.seg .ind{position:absolute;top:3px;left:0;height:calc(100% - 6px);width:0;border-radius:var(--r-pill);background:var(--glass-strong);box-shadow:0 2px 8px rgba(0,0,0,.10),0 0 0 .5px rgba(0,0,0,.04);transition:left var(--t) var(--ease),width var(--t) var(--ease)}
+.seg.lg button{padding:9px 16px;font-size:15px}
+
+/* ---------- вкладки (мобильный таб-бар / десктоп в шапке) ---------- */
+.tabbar{position:fixed;left:16px;right:16px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:40;display:flex;padding:5px;height:var(--tabbar-h);border-radius:var(--r-pill);gap:2px}
+.tabbar .seg{height:100%}
+.tabbar .seg{background:transparent;padding:0;width:100%}
+.tabbar .seg button{flex:1;padding:6px 8px;justify-content:center;font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabbar .seg button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tabbar .seg .ind{background:var(--tint-soft);box-shadow:none}
+.tabbar .seg button[aria-selected="true"]{color:var(--tint)}
+.topnav{display:none}
+.js .view{display:none}
+.js .view.active{display:flex}
+.view{display:flex;flex-direction:column;gap:18px}
+@media (prefers-reduced-motion:no-preference){
+  .js .view.active{animation:viewIn var(--t-slow) var(--ease)}
+}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- фильтры ---------- */
+.filters{display:flex;flex-wrap:wrap;gap:10px 18px;padding:12px 14px;border-radius:var(--r-l);align-items:center}
+.filters .f{display:flex;align-items:center;gap:10px;min-width:0}
+.filters .f .caption{min-width:52px}
+
+/* ---------- конструктор ---------- */
+.build{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+.slots{display:flex;flex-direction:column;gap:12px}
+.slot{border-radius:var(--r-l);padding:14px 16px 12px;display:flex;flex-direction:column;gap:10px;transition:box-shadow var(--t) var(--ease),background var(--t) var(--ease)}
+.slot.done{background:var(--glass-strong)}
+.slot-h{display:flex;align-items:center;gap:10px}
+.slot-h h3{flex:1}
+.slot-h .opt{font-size:12px;color:var(--label-3);font-weight:500}
+.badge{font-size:12px;font-weight:600;color:var(--label-2);background:var(--fill);padding:3px 9px;border-radius:var(--r-pill)}
+.badge.on{color:var(--ok)}
+.slot-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows var(--t) var(--ease)}
+.slot-body>div{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:10px}
+.slot.done .slot-body{grid-template-rows:0fr}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:2px}
+.chip{border:1px solid transparent;background:var(--fill);color:var(--label);padding:8px 13px;border-radius:var(--r-pill);font-size:14px;font-weight:500;cursor:pointer;text-align:left;line-height:1.25;-webkit-tap-highlight-color:transparent;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease),opacity var(--t) var(--ease),display var(--t) allow-discrete}
+.chip:hover{background:var(--fill-2)}
+.chip:active{transform:scale(.96)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.chip[data-off]{display:none;opacity:0;transform:scale(.9)}
+@starting-style{.chip{opacity:0;transform:scale(.92)}}
+.sel{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sel .chip{cursor:default}
+.sel .link{border:0;background:transparent;color:var(--tint);font-weight:600;font-size:14px;padding:6px 2px;cursor:pointer}
+.none{font-size:13.5px;color:var(--warn);background:var(--warn-bg);padding:9px 12px;border-radius:var(--r-s)}
+.hint{font-size:12.5px;color:var(--label-3)}
+
+/* ---------- лист «Твой образ» ---------- */
+.sheet{position:sticky;top:78px;border-radius:var(--r-xl);padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.sheet-h{display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;text-align:left;width:100%;cursor:default}
+.sheet-h .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sheet-h h2{font-size:19px}
+.sheet-h .sum{font-size:13px;color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.steps{display:flex;gap:5px}
+.steps i{width:22px;height:5px;border-radius:3px;background:var(--fill-2);transition:background var(--t) var(--ease),transform var(--t) var(--spring)}
+.steps i.on{background:var(--tint);transform:scaleY(1.25)}
+.steps i.all{background:var(--ok)}
+.chev{width:22px;height:22px;stroke:var(--label-3);fill:none;stroke-width:2;stroke-linecap:round;transition:transform var(--t) var(--ease);display:none}
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rows li{display:grid;grid-template-columns:82px minmax(0,1fr) 30px;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--sep)}
+.rows li:last-child{border-bottom:0}
+.rows .k{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--label-2)}
+.rows .v{font-size:15px}
+.rows .v.empty{color:var(--label-3)}
+.rows .x{width:28px;height:28px;border-radius:50%;border:0;background:var(--fill);color:var(--label-2);font-size:15px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:background var(--t-fast),transform var(--t-fast)}
+.rows .x:hover{background:var(--fill-2)}
+.rows .x:active{transform:scale(.9)}
+.sheet-body>div{display:flex;flex-direction:column;gap:14px}
+.tips:empty,.wx:empty{display:none}
+.tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--label-2)}
+.tips li::marker{color:var(--tint)}
+.wx{font-size:12.5px;color:var(--label-2)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btn{border:0;border-radius:var(--r-pill);padding:11px 16px;white-space:nowrap;font-size:15px;font-weight:600;cursor:pointer;transition:transform var(--t-fast) var(--ease),background var(--t-fast),opacity var(--t-fast);-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--tint);color:var(--on-tint);flex:1}
+.btn.quiet{background:var(--fill);color:var(--label)}
+.btn.primary.done{background:var(--ok)}
+.btn.icon{width:44px;height:44px;padding:0;display:grid;place-items:center;background:var(--tint-soft);color:var(--tint);flex:0 0 auto}
+.btn.icon svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn:disabled{opacity:.38;cursor:default;transform:none}
+
+/* ---------- окно карточки ---------- */
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));background:rgba(15,17,20,.36);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.modal-card{width:min(440px,100%);max-height:100%;overflow:auto;border-radius:var(--r-xl);padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--glass-strong)}
+.modal-h{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.modal-h h2{font-size:19px}
+.modal-h .x{width:32px;height:32px;border-radius:50%;border:0;background:var(--fill);color:var(--label-2);cursor:pointer;font-size:15px}
+.modal img{width:100%;height:auto;border-radius:var(--r-l);display:block;box-shadow:0 8px 24px rgba(0,0,0,.14);-webkit-touch-callout:default}
+.modal .footnote{text-align:center}
+.modal .footnote.strong{color:var(--label)}
+@media (prefers-reduced-motion:no-preference){
+  .modal:not([hidden]){animation:fadeIn var(--t) var(--ease)}
+  .modal:not([hidden]) .modal-card{animation:popIn var(--t-slow) var(--spring)}
+}
+@keyframes fadeIn{from{opacity:0}}
+@keyframes popIn{from{opacity:0;transform:translateY(16px) scale(.96)}}
+
+/* ---------- каталог ---------- */
+.catf{overflow:auto}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:10px}
+.card{border-radius:var(--r-l);padding:14px 16px;display:flex;flex-direction:column;gap:8px;transition:opacity var(--t) var(--ease),transform var(--t) var(--ease),display var(--t) allow-discrete}
+.card[data-off]{display:none;opacity:0;transform:scale(.97)}
+@starting-style{.card{opacity:0;transform:translateY(6px)}}
+.card .meta{display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--label-2)}
+.card h4{font-size:16px;font-weight:600;line-height:1.3}
+.card .d{font-size:14px}
+.card .w{font-size:14px;color:var(--label-2)}
+.card .w b{color:var(--label);font-weight:600}
+.card .try{margin-top:auto;align-self:flex-start;border:0;background:var(--tint-soft);color:var(--tint);padding:8px 13px;border-radius:var(--r-pill);font-size:13.5px;font-weight:600;cursor:pointer;transition:transform var(--t-fast),background var(--t-fast)}
+.card .try:active{transform:scale(.96)}
+.card.muted{background:transparent;border-style:dashed}
+.card.muted h4{color:var(--label-2)}
+
+/* ---------- правила ---------- */
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:10px}
+.rule{border-radius:var(--r-l);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.rule strong{font-weight:600}
+.rule p{font-size:14px;color:var(--label-2)}
+footer{color:var(--label-3);font-size:12.5px;padding:8px 4px 0}
+
+/* ---------- десктоп ---------- */
+@media (min-width:821px){
+  body{padding-bottom:40px}
+  .tabbar{display:none}
+  .topnav{display:block}
+  .sheet{max-height:calc(100vh - 96px);overflow:auto}
+  .sheet-h .sum{display:none}
+}
+
+/* ---------- мобильный ---------- */
+@media (max-width:820px){
+  .build{grid-template-columns:1fr}
+  .topbar .sub{display:none}
+  .sheet .acts{flex-wrap:nowrap}
+  .sheet .btn.quiet{padding-inline:14px}
+  .sheet.open{background:var(--glass-strong);-webkit-backdrop-filter:blur(40px) saturate(180%);backdrop-filter:blur(40px) saturate(180%)}
+  .sheet{position:fixed;left:16px;right:16px;bottom:calc(12px + var(--tabbar-h) + 10px + env(safe-area-inset-bottom,0px));top:auto;z-index:35;padding:12px 16px 14px;max-height:calc(100dvh - 120px);overflow:auto;transition:transform var(--t-slow) var(--spring),box-shadow var(--t)}
+  .sheet-h{cursor:pointer}
+  .sheet-h h2{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sheet-h .t{gap:1px}
+  .steps i{width:16px}
+  .chev{display:block}
+  .sheet.open .chev{transform:rotate(180deg)}
+  .sheet-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--t-slow) var(--ease)}
+  .sheet-body>div{min-height:0;overflow:hidden}
+  .sheet.open .sheet-body{grid-template-rows:1fr}
+  .sheet.open .sheet-body>div{padding-top:10px}
+  .sheet.ready:not(.open){box-shadow:var(--glass-shadow),0 0 0 2px var(--ok)}
+}
+@media (max-width:480px){
+  h1{font-size:30px}
+  .filters{padding:10px 12px;gap:8px}
+  .filters .f{width:100%;flex-direction:column;align-items:stretch;gap:6px}
+  .filters .f .caption{min-width:0;padding-left:4px}
+  .filters .seg{display:flex;width:100%}
+  .filters .seg button{padding:7px 4px;font-size:13.5px}
+  .chip{padding:9px 13px;font-size:14.5px}
+}
+
+/* ---------- движение: уважение к настройкам ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
+
+</style>
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><span class="b1"></span><span class="b2"></span><span class="b3"></span><span class="b4"></span></div>
+
+<header class="topbar glass">
+  <a class="brand" href="#build" id="brand" aria-label="Мой шкаф — на главную"><span class="brand-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.2a1.9 1.9 0 1 1 1.9 1.9c-.9 0-1.9.6-1.9 1.6v1.1L4.3 15.2c-.9.6-.5 2 .6 2h14.2c1.1 0 1.5-1.4.6-2L12 9.8"/></svg></span><span class="brand-t"><span class="brand-n">Мой шкаф</span><span class="sub">гардероб и образы</span></span></a>
+  <nav class="topnav" aria-label="Разделы">
+    <div class="seg" id="topseg" role="tablist">
+      <button type="button" role="tab" data-view="build" aria-selected="true">Собрать образ</button>
+      <button type="button" role="tab" data-view="closet" aria-selected="false">Гардероб</button>
+      <button type="button" role="tab" data-view="rules" aria-selected="false">Правила</button>
+      <span class="ind" aria-hidden="true"></span>
+    </div>
+  </nav>
+</header>
+
+<main class="wrap">
+
+<!-- ============ КОНСТРУКТОР ============ -->
+<section class="view active" id="view-build" role="tabpanel">
+  <div class="hero">
+    <h2>Собери образ</h2>
+    <p>Начни с любой вещи. Неподходящие исчезают сами: по погоде, поводу, цвету обуви, узорам и твоим правилам. Низ, верх и обувь обязательны, остальное по желанию.</p>
+    <p class="footnote num" id="stat"></p>
+  </div>
+
+  <div class="filters glass" id="filters">
+    <div class="f"><span class="caption">Погода</span>
+      <div class="seg" id="seg-w" role="group" aria-label="Погода">
+        <button type="button" data-w="" aria-pressed="true">Любая</button>
+        <button type="button" data-w="S" aria-pressed="false">Жара</button>
+        <button type="button" data-w="M" aria-pressed="false">+10…19</button>
+        <button type="button" data-w="C" aria-pressed="false">Холод</button>
+        <span class="ind" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div class="f"><span class="caption">Повод</span>
+      <div class="seg" id="seg-o" role="group" aria-label="Повод">
+        <button type="button" data-o="" aria-pressed="true">Любой</button>
+        <button type="button" data-o="walk" aria-pressed="false">Прогулка</button>
+        <button type="button" data-o="meet" aria-pressed="false">Город</button>
+        <button type="button" data-o="eve" aria-pressed="false">Вечер</button>
+        <span class="ind" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="build">
+    <div class="slots" id="slots"></div>
+
+    <aside class="sheet glass" id="sheet" aria-live="polite">
+      <button type="button" class="sheet-h" id="sheetToggle" aria-expanded="false" aria-controls="sheetBody">
+        <div class="t">
+          <h2 id="sheetTitle">Выбери первую вещь</h2>
+          <span class="sum" id="sheetSum">пока ничего не выбрано</span>
+        </div>
+        <div class="steps" id="steps" aria-label="Обязательные: низ, верх, обувь"><i></i><i></i><i></i></div>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 14l6-6 6 6"/></svg>
+      </button>
+      <div class="sheet-body" id="sheetBody"><div>
+        <ul class="rows" id="rows"></ul>
+        <span class="wx" id="wx"></span>
+        <ul class="tips" id="tips"></ul>
+        <div class="acts">
+          <button type="button" class="btn primary" id="fill">Собрать за меня</button>
+          <button type="button" class="btn quiet" id="reset">Сбросить</button>
+          <button type="button" class="btn icon" id="save" aria-label="Сохранить образ картинкой" title="Сохранить картинкой"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg></button>
+        </div>
+      </div></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ ГАРДЕРОБ ============ -->
+<section class="view" id="view-closet" role="tabpanel">
+  <div class="hero">
+    <h2>Гардероб</h2>
+    <p>Каждая вещь с описанием и советом, как её носить. Кнопка под карточкой переносит вещь в конструктор.</p>
+  </div>
+  <div class="catf"><div class="seg" id="catf" role="group" aria-label="Раздел"><span class="ind" aria-hidden="true"></span></div></div>
+  <div class="cards" id="cards"></div>
+</section>
+
+<!-- ============ ПРАВИЛА ============ -->
+<section class="view" id="view-rules" role="tabpanel">
+  <div class="hero">
+    <h2>Как работает подбор</h2>
+    <p>Правила, по которым конструктор скрывает неподходящее.</p>
+  </div>
+  <div class="rules">
+    <div class="rule glass"><strong>Погода</strong><p>У каждой вещи свой сезон. Шорты и Birkenstock не встретятся с шерстью и сапогами.</p></div>
+    <div class="rule glass"><strong>Повод</strong><p>Кроссовки не попадут к корсету, а слингбэки — к бермудам. Уровень нарядности должен совпадать.</p></div>
+    <div class="rule glass"><strong>Обувь в тон низа</strong><p>К чёрным брюкам и мини только чёрная или нейтральная обувь, коричневая замша уходит.</p></div>
+    <div class="rule glass"><strong>Один узор, один акцент</strong><p>Две разные полоски, клетка с принтом, два громких предмета или два логотипа вместе не появятся.</p></div>
+    <div class="rule glass"><strong>Крой к крою</strong><p>Свитер только под тренч или пальто. Рукава-фонарики только под свободный пиджак. Двойного денима нет.</p></div>
+    <div class="rule glass"><strong>Твои решения</strong><p>Поло не сочетается с юбками, бермуды не носятся с Birkenstock.</p></div>
+  </div>
+  <div class="hero"><h2>Не участвуют в образах</h2><p>Вещи, которые мы решили отпустить, и спортивные.</p></div>
+  <div class="cards" id="out"></div>
+  <footer>Вердикты даны по фото и примеркам. Новую вещь проверяй правилом «три образа с тем, что уже есть»: если конструктор собирает с ней меньше трёх, это повод подумать.</footer>
+</section>
+
+</main>
+
+<nav class="tabbar glass" aria-label="Разделы">
+  <div class="seg" id="tabseg" role="tablist">
+    <button type="button" role="tab" data-view="build" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 4.5L20 9l-4 4 1 5.5-5-2.6-5 2.6 1-5.5-4-4 5.5-1.5z"/></svg>Образ</button>
+    <button type="button" role="tab" data-view="closet" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 4v2m0 0c-1.5 0-2.5 1-2.5 2.2 0 1 .6 1.5 2.5 2.6L4 15.5V18h16v-2.5L12 10.8"/></svg>Гардероб</button>
+    <button type="button" role="tab" data-view="rules" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Правила</button>
+    <span class="ind" aria-hidden="true"></span>
+  </div>
+</nav>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+  <div class="modal-card glass">
+    <div class="modal-h"><h2 id="mTitle">Карточка образа</h2><button type="button" class="x" id="mClose" aria-label="Закрыть">✕</button></div>
+    <img id="mImg" alt="Карточка собранного образа">
+    <div class="acts"><button type="button" class="btn primary" id="mSave">Сохранить на телефон</button></div>
+    <p class="footnote" id="mHint">Если кнопка не сработала, удержи картинку пальцем и выбери «Сохранить в Фото».</p>
+  </div>
+</div>
+
+<script>
+// Данные гардероба. Одна вещь = одна запись. Флаги: wide, dark, belt (шлёвки), mini, denim, over (оверсайз), bo (ремень поверх), notuck, fit (облегающий), loud, logo, pat (узор), brown (тёплая обувь), sweater, sleeve.
+const SL={bottom:"Низ",top:"Верх",layer:"Верхний слой",shoes:"Обувь",bag:"Сумка",belt:"Ремень",acc:"Аксессуар"};
+const ORDER=["bottom","top","layer","shoes","bag","belt","acc"];
+const REQ={bottom:1,top:1,shoes:1};
+const SEAS={S:"жара",M:"+10…19",C:"холод"};
+const CATS=[["layer","Верхняя одежда и жакеты"],["shirt","Рубашки"],["knit","Трикотаж и топы"],["bottom","Низ"],["shoes","Обувь"],["acc","Сумки, ремни, платок"]];
+const I=[
+// ---------- слой
+{id:"trench",n:"Тренч stone",slot:"layer",cat:"layer",s:"M",f:[1,3],d:"Оверсайз-тренч бежево-stone с отложным воротником. Главная вещь твоих референсов.",w:"Носи нараспашку поверх тональной колонны или подпоясывай на талии. В поездке надевай его в самолёт, а не клади в чемодан."},
+{id:"blazer",n:"Чёрный оверсайз-пиджак",slot:"layer",cat:"layer",s:"SM",f:[1,3],d:"Мужской крой ниже бедра. Самая универсальная вещь шкафа: с джинсами, брюками, мини и бермудами.",w:"Не застёгивай, рукава подтяни до локтя. Под него — облегающий или заправленный верх. Вечером накинь на плечи поверх корсета."},
+{id:"leather",n:"Чёрная кожаная куртка с поясом",slot:"layer",cat:"layer",s:"MC",f:[1,3],d:"Эко-кожа с поясом на талии — пояс сам рисует песочные часы.",w:"Пояс всегда затянут или завязан узлом. С мини и сапогами-трубами — лучший образ для твоей фигуры."},
+{id:"brownCoat",n:"Шоколадное пальто-бушлат",slot:"layer",cat:"layer",s:"MC",f:[1,3],d:"Укороченное двубортное пальто из шерсти. Шоколад — цвет из твоей палитры.",w:"Низ только с высокой посадкой, чтобы короткая длина не съела ноги. Лучше всего с серым и голубым."},
+{id:"greyJ",n:"Серый шерстяной жакет",slot:"layer",cat:"layer",s:"MC",f:[1,3],d:"Жакет без воротника с золотыми пуговицами. Серый у лица — один из лучших твоих цветов.",w:"Застёгивай на 2–3 пуговицы, чтобы талия читалась. С серыми брюками получается костюм."},
+{id:"tweed",n:"Чёрный твидовый жакет",slot:"layer",cat:"layer",s:"M",f:[1,3],d:"Короткий твидовый жакет — классика, которую легко сделать «бабушкиной».",w:"Носи просто: с футболкой, джинсами и лоферами. Короткий жакет с мини удлиняет ноги. Не комплектом с юбкой и цепочками."},
+{id:"whiteBl",n:"Белый приталенный пиджак",slot:"layer",cat:"layer",s:"SM",f:[2,3],d:"Приталенный крой прямо под твою фигуру.",w:"С чёрным низом — чистая графика. Застёгивай на одну пуговицу."},
+{id:"denimJ",n:"Джинсовый пиджак",slot:"layer",cat:"layer",s:"SM",f:[0,1],d:"Кэжуал-версия пиджака на тёплые дни.",w:"Со светлым низом или мини, можно на плечах. С джинсами и бермудами не носим — двойной деним спорит с твоим стилем."},
+{id:"zipJ",n:"Чёрная куртка на молнии",slot:"layer",cat:"layer",s:"MC",f:[0,1],d:"Практичная межсезонная куртка, образ она не делает.",w:"С кедами и тотал-блэком, у лица добавь серебряные очки или цепочку."},
+{id:"bomber",n:"Оливковый бомбер",slot:"layer",cat:"layer",s:"MC",f:[0,1],d:"Тёплый оливковый у лица тебе не помогает. Под вопросом.",w:"Только с белым верхом и денимом, ворот открыт. Если за сезон не надела — отпускай."},
+{id:"hussar",n:"Синий «гусарский» жакет",slot:"layer",cat:"layer",s:"M",f:[1,2],loud:1,d:"Жакет со шнурами — громкая вещь прошлых сезонов.",w:"Только с самой простой базой: белая футболка, джинсы, лоферы. Больше ни одного акцента."},
+{id:"blueCardi",n:"Васильковый кардиган",slot:"layer",cat:"layer",s:"MC",f:[1,2],loud:1,d:"Укороченный оверсайз ярко-синего цвета с чёрными пуговицами. Тебе очень идёт: подсвечивает глаза.",w:"Всё остальное тихое — чёрный, графит, тёмный деним, серый. Под него только облегающий верх."},
+// ---------- рубашки
+{id:"shirtWhite",n:"Белая оверсайз-рубашка",slot:"top",cat:"shirt",s:"SMC",f:[1,3],over:1,bo:1,d:"Новая хлопковая рубашка оверсайз. База номер один: с мини, бермудами, брюками, под пиджак.",w:"Заправь спереди, закатай рукава до локтя, расстегни две пуговицы. В жару закрывает плечи и спасает от солнца."},
+{id:"shirtBlue",n:"Голубая оверсайз-рубашка",slot:"top",cat:"shirt",s:"SMC",f:[1,2],over:1,bo:1,d:"Поплин. Ядро гардероба — голубая рубашка есть почти на каждом референсе.",w:"Заправь спереди, рукава закатай. С бермудами, белыми носками и кроссовками — твой второй референс."},
+{id:"shirtStripe",n:"Голубая рубашка в полоску с объёмным рукавом",slot:"top",cat:"shirt",s:"SM",f:[1,2],loud:1,pat:"bstripe",bo:1,sleeve:1,d:"Акцентная рубашка: главное в ней — рукава.",w:"Всё остальное спокойное. Заправляй или затяни ремень поверх на талии. Сверху — только свободный пиджак или тренч."},
+{id:"shirtLinen",n:"Белая льняная рубашка в полоску",slot:"top",cat:"shirt",s:"SM",f:[1,2],pat:"set",d:"Часть «пижамного» комплекта с брюками и шортами в полоску.",w:"Комплектом — расстегни две пуговицы и приоткрой пояс брюк. Отдельно — с джинсами или бермудами."},
+{id:"shirtSatin",n:"Голубая атласная рубашка",slot:"top",cat:"shirt",s:"SMC",f:[2,3],d:"Приталенная, блеск атласа выглядит дорого.",w:"Всегда заправляй. С чёрной мини или чёрными брюками — вечер, с джинсами — нарядный день."},
+{id:"shirtCheck",n:"Чёрная рубашка в клетку",slot:"top",cat:"shirt",s:"MC",f:[0,1],pat:"check",d:"Гранжевая клетка, из твоего вектора выпадает. Для поездок и дачи.",w:"Расстёгнутой, поверх белой майки или футболки, как лёгкую куртку."},
+// ---------- трикотаж
+{id:"polo",n:"Серое трикотажное поло",slot:"top",cat:"knit",s:"SMC",f:[1,2],fit:1,d:"Один из лучших цветов и вырезов для тебя: V-вырез поло вытягивает шею.",w:"Заправляй. С серыми брюками — тихий комплект тон в тон, летом — с бермудами или шортами."},
+{id:"creamTop",n:"Молочный вязаный топ-стойка",slot:"top",cat:"knit",s:"SM",f:[1,3],fit:1,d:"Без рукавов, с воротником-стойкой. Молочный — светлое пятно у лица.",w:"Слой под жакеты и тренч. С чёрными брюками: светлое сверху, тёмное снизу."},
+{id:"poloRL",n:"Белое поло без рукавов Ralph Lauren",slot:"top",cat:"knit",s:"SM",f:[1,2],fit:1,d:"Преппи с маленьким логотипом.",w:"Заправляй в джинсы или бермуды с ремнём. С юбками его не носим."},
+{id:"blackMock",n:"Чёрная вязаная водолазка без рукавов",slot:"top",cat:"knit",s:"SMC",f:[1,3],fit:1,d:"Лаконичный слой, работает и днём, и вечером.",w:"Под белый или серый жакет, под кожаную куртку. Вечером — с белыми брюками в полоску."},
+{id:"greySw",n:"Серый оверсайз-свитер",slot:"top",cat:"knit",s:"MC",f:[1,2],over:1,bo:1,sweater:1,d:"Мягкая шерсть, круглый вырез, серый меланж у лица.",w:"Заправь спереди за ремень, чтобы объём не съел талию. Или завяжи на плечах поверх рубашки."},
+{id:"cardi",n:"Белый кардиган с асимметричной застёжкой",slot:"top",cat:"knit",s:"SM",f:[1,2],fit:1,d:"Приталенный, подчёркивает талию. Интересная деталь без шума.",w:"Носи застёгнутым как кофточку, заправленным спереди."},
+{id:"teeW",n:"Белая футболка",slot:"top",cat:"knit",s:"SMC",f:[1,2],fit:1,d:"Фундамент для пиджаков и джинсов.",w:"Заправляй. Меняй, как только ткань потеряла вид: тихая роскошь держится на идеальной базе."},
+{id:"teeB",n:"Чёрная футболка",slot:"top",cat:"knit",s:"SMC",f:[1,3],fit:1,d:"Чёрная база, работает даже вечером.",w:"Заправляй. С бермудами и пиджаком — твой первый референс."},
+{id:"tankW",n:"Белая майка",slot:"top",cat:"knit",s:"SM",f:[1,2],fit:1,d:"Нижний слой на жару.",w:"Под рубашку нараспашку или под пиджак."},
+{id:"bodyB",n:"Чёрный боди-топ",slot:"top",cat:"knit",s:"SMC",f:[1,3],fit:1,notuck:1,d:"Облегающий и не вылезает из пояса.",w:"Под оверсайз-пиджак, с широкими брюками и мини — линия талии идеально чистая."},
+{id:"corset",n:"Чёрный атласный корсет-топ",slot:"top",cat:"knit",s:"SMC",f:[2,3],fit:1,notuck:1,d:"Лучшая вечерняя вещь для песочных часов: держит талию.",w:"С джинсами, чёрной мини или брюками. Пиджак на плечи — корсет выглядывает."},
+{id:"lace",n:"Чёрное кружевное боди",slot:"top",cat:"knit",s:"SMC",f:[2,3],fit:1,notuck:1,loud:1,d:"Вечерний слой.",w:"Только под пиджак или кожаную куртку, остальное — фон."},
+// ---------- низ
+{id:"trBlack",n:"Чёрные широкие брюки",slot:"bottom",cat:"bottom",s:"SMC",f:[1,3],wide:1,dark:1,belt:1,d:"Брюки со складками, длина в пол. База, которая делает рост выше.",w:"Верх заправлен, обувь чёрная — нога визуально продолжается."},
+{id:"trGrey",n:"Серые брюки со складками",slot:"bottom",cat:"bottom",s:"MC",f:[1,3],wide:1,belt:1,d:"Лучшие брюки гардероба для твоего стиля.",w:"Тон в тон с серым поло или свитером — колонна. Обувь — чёрные лоферы или коричневые балетки."},
+{id:"jeans",n:"Голубые широкие джинсы",slot:"bottom",cat:"bottom",s:"SMC",f:[0,3],wide:1,belt:1,denim:1,d:"Хорошие, но посадка низковата.",w:"Всегда с ремнём и заправленным верхом — так талия возвращается на место."},
+{id:"bermuda",n:"Джинсовые бермуды",slot:"bottom",cat:"bottom",s:"S",f:[0,1],belt:1,denim:1,d:"Новые. Длина выше колена, прямая штанина — как на твоих референсах.",w:"Ремень обязателен, верх заправлен. Обувь — кроссовки с белыми носками или лоферы, не шлёпки."},
+{id:"trStripe",n:"Белые брюки в полоску",slot:"bottom",cat:"bottom",s:"SM",f:[1,2],wide:1,pat:"set",d:"Комплект к рубашке в полоску.",w:"Комплектом или с однотонным верхом: чёрным, серым, голубым."},
+{id:"shortsStripe",n:"Белые шорты в полоску",slot:"bottom",cat:"bottom",s:"S",f:[0,1],pat:"set",d:"Из того же пижамного комплекта.",w:"Комплектом с рубашкой в полоску или с серым поло."},
+{id:"blackMini",n:"Чёрная юбка мини",slot:"bottom",cat:"bottom",s:"SM",f:[1,3],dark:1,mini:1,d:"Новая. Короткий низ — ноги длиннее.",w:"С оверсайз-рубашкой или пиджаком: объём сверху, коротко снизу. Обувь — лоферы."},
+{id:"leatherMini",n:"Чёрная кожаная мини",slot:"bottom",cat:"bottom",s:"MC",f:[1,3],dark:1,mini:1,d:"Кожа держит форму и подчёркивает бёдра.",w:"С сапогами-трубами и кожаной курткой или свитером — готовый образ с референса."},
+{id:"pleat",n:"Кремовая плиссированная мини",slot:"bottom",cat:"bottom",s:"SM",f:[1,2],mini:1,d:"Летний преппи.",w:"С чёрным или серым верхом, чтобы не выглядело школьной формой."},
+{id:"trOlive",n:"Оливково-коричневые брюки",slot:"bottom",cat:"bottom",s:"MC",f:[1,2],wide:1,belt:1,d:"Отличный крой, спорный тёплый хаки. Под вопросом.",w:"У лица держи белое или чёрное, хаки только внизу."},
+// ---------- обувь
+{id:"loafers",n:"Чёрные лоферы",slot:"shoes",cat:"shoes",s:"SM",f:[1,3],d:"Главная пара по референсам.",w:"С белыми носками днём, на голую ногу вечером. Идут почти ко всему, от бермуд до чёрных брюк."},
+{id:"bootsR",n:"Сапоги-трубы без каблука",slot:"shoes",cat:"shoes",s:"MC",f:[1,3],d:"Конные сапоги — главные сапоги сезона, и в них можно гулять весь день.",w:"С мини и кожаной юбкой. Широкие брюки носи поверх сапог."},
+{id:"bootsK",n:"Сапоги на киттен-хиле",slot:"shoes",cat:"shoes",s:"MC",f:[2,3],d:"Острый нос, невысокий каблук — самая удлиняющая пара.",w:"Для выхода, не для долгих прогулок. С мини, под брюки."},
+{id:"mules",n:"Чёрные мюли",slot:"shoes",cat:"shoes",s:"SM",f:[2,3],d:"Квадратный нос уходит из моды, но пока работают.",w:"Вечером с брюками и джинсами."},
+{id:"sling",n:"Белые слингбэки с кружевом",slot:"shoes",cat:"shoes",s:"SM",f:[3,3],d:"Праздничная пара.",w:"На день рождения или свадьбу друзей. В повседневные образы не идут."},
+{id:"flats",n:"Коричневые замшевые балетки",slot:"shoes",cat:"shoes",s:"SM",f:[1,2],brown:1,d:"Шоколадная замша — точно в палитре.",w:"С серыми брюками, светлым низом, бермудами. С чёрным низом не сочетаем."},
+{id:"scBrown",n:"Puma Speedcat коричневые",slot:"shoes",cat:"shoes",s:"SMC",f:[0,1],brown:1,d:"Лучшая спортивная пара: шоколадный — цвет сезона.",w:"С джинсами, бермудами, светлыми брюками и поло."},
+{id:"scBlack",n:"Puma Speedcat чёрные",slot:"shoes",cat:"shoes",s:"SMC",f:[0,1],d:"Остаются, но вторые такие не нужны.",w:"С чёрным низом и тотал-блэком."},
+{id:"samba",n:"Adidas Samba",slot:"shoes",cat:"shoes",s:"SM",f:[0,1],d:"Донашивай, повторно не покупай.",w:"С джинсами и поло."},
+{id:"dunk",n:"Nike Dunk коричневые",slot:"shoes",cat:"shoes",s:"SMC",f:[0,1],brown:1,d:"Цвет в тренде, модель — нет. Под вопросом.",w:"С джинсами и серым жакетом."},
+{id:"tiger",n:"Onitsuka Tiger жёлтые",slot:"shoes",cat:"shoes",s:"SM",f:[0,1],brown:1,loud:1,d:"Культовая модель, громкий цвет.",w:"Единственный акцент к серому и голубому денимом. Больше ни одного яркого пятна."},
+{id:"nb",n:"New Balance серебристые",slot:"shoes",cat:"shoes",s:"SM",f:[0,1],d:"Для долгих прогулок и поездок.",w:"С белыми носками и бермудами — точь-в-точь твой референс."},
+{id:"birk",n:"Birkenstock шоколадная замша",slot:"shoes",cat:"shoes",s:"S",f:[0,1],brown:1,d:"Удобная пара на жару.",w:"С шортами, мини и светлыми брюками. С бермудами не носим — нога смотрится короче."},
+// ---------- сумки и аксессуары
+{id:"bagSuede",n:"Коричневая замшевая сумка",slot:"bag",cat:"acc",s:"SMC",f:[1,2],d:"Прямо с референсов. Главная дневная сумка.",w:"Связывает шоколадную обувь и светлый низ. Вечером её не берём."},
+{id:"bagSoft",n:"Мягкая чёрная сумка Coach",slot:"bag",cat:"acc",s:"SMC",f:[1,2],d:"Большая мягкая сумка — это Олсен.",w:"На каждый день, особенно с тотал-блэком и кожей."},
+{id:"bagBag",n:"Чёрный багет Coach",slot:"bag",cat:"acc",s:"SMC",f:[2,3],d:"Вечерняя сумка.",w:"Под мышкой, с корсетом, атласом, мини."},
+{id:"bagGucci",n:"Мини-тоут Gucci GG",slot:"bag",cat:"acc",s:"SMC",f:[1,2],logo:1,d:"Логотипная сумка — носи дозированно.",w:"В спокойных однотонных образах. С ремнём GG вместе не носим."},
+{id:"beltS",n:"Чёрный ремень с серебряной пряжкой",slot:"belt",cat:"acc",s:"SMC",f:[0,3],d:"Рабочий ремень под джинсы и брюки.",w:"Держит заправленный верх, возвращает талию."},
+{id:"beltG",n:"Тонкий ремень с золотой пряжкой",slot:"belt",cat:"acc",s:"SMC",f:[1,3],d:"Тонкий, нарядный.",w:"С мини поверх рубашки, с чёрными брюками — единственное украшение."},
+{id:"beltGG",n:"Ремень Gucci GG",slot:"belt",cat:"acc",s:"SMC",f:[0,1],logo:1,d:"Крупный логотип. Под вопросом.",w:"Изредка с джинсами и простым верхом."},
+{id:"scarf",n:"Шёлковый платок",slot:"acc",cat:"acc",s:"SM",f:[1,3],pat:"print",d:"Молочный с синим принтом.",w:"На плечи в церквях, на сумку, на шею. В жару — как топ-бандо с однотонным низом."}
+];
+const OUT=[
+["Кремовый жакет из 3D-лепестков","Добавляет объём корпусу и почти ни с чем не сочетается."],
+["Жёлтая мятая рубашка с карманами","Карманы расширяют бюст, жёлтый не работает у лица."],
+["Чёрный топ с плечиками","Плечики расширяют верх."],
+["Оливковый мохеровый джемпер","Оливково-горчичный у лица плюс плечики."],
+["Жёлтый джемпер","Лимонный не из твоей палитры."],
+["Красный свитшот Planta Rosa","Надписи и оранжево-красный."],
+["Тёмные рваные джинсы","Крупные дыры — не про тихую роскошь."],
+["Кремовая юбка-баллон с 3D-цветами","Добавляет объём бёдрам."],
+["Серые брюки-парашюты","Резинка по низу укорачивает ноги."],
+["Простые белые шорты","Слишком короткие, ты их не носишь."],
+["Nike Dunk серые","Восьмая пара кроссовок."],
+["Чёрные босоножки с завязками","Завязки на щиколотке режут ногу."],
+["Бордовая футболка Santa Rosa","Для дома и спорта."],
+["Чёрный лонгслив ATRACE","Для дома и спорта."],
+["Синее зип-худи","Для спорта и поездок."],
+["Белая флисовая куртка","Для прогулок на природе."],
+["Кремовые флисовые джоггеры","Для дома."],
+["Синие спортивные брюки","Для спорта."]
+];
+const BANPAIR=[["poloRL","blackMini"],["poloRL","leatherMini"],["poloRL","pleat"],["bermuda","birk"]];
+const OCC={walk:[0,1],meet:[1,2],eve:[2,3]};
+
+
+window.CLOSET={SL,ORDER,REQ,SEAS,CATS,I,OUT,BANPAIR,OCC};
+
+</script>
+<script>
+/* Мой шкаф — логика конструктора и интерфейса */
+(function(){
+"use strict";
+const {SL,ORDER,REQ,SEAS,CATS,I,OUT,BANPAIR,OCC}=window.CLOSET;
+const BY={}; I.forEach(x=>BY[x.id]=x);
+const REQK=["bottom","top","shoes"];
+const $=id=>document.getElementById(id);
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const phone=()=>matchMedia("(max-width:820px)").matches;
+
+/* ---------- правила совместимости ---------- */
+function ok(list,wx,occ){
+  const has=id=>list.some(x=>x.id===id), get=s=>list.find(x=>x.slot===s);
+  let s="SMC"; for(const x of list){ s=[...s].filter(c=>x.s.includes(c)).join(""); }
+  if(!s) return false; if(wx && !s.includes(wx)) return false;
+  let lo=0,hi=3; for(const x of list){lo=Math.max(lo,x.f[0]);hi=Math.min(hi,x.f[1]);}
+  if(occ){lo=Math.max(lo,OCC[occ][0]);hi=Math.min(hi,OCC[occ][1]);}
+  if(lo>hi) return false;
+  if(list.filter(x=>x.loud).length>1) return false;
+  if(list.filter(x=>x.logo).length>1) return false;
+  if(new Set(list.filter(x=>x.pat).map(x=>x.pat)).size>1) return false;
+  for(const [a,b] of BANPAIR) if(has(a)&&has(b)) return false;
+  const bottom=get("bottom"),top=get("top"),layer=get("layer"),shoes=get("shoes"),belt=get("belt");
+  if(bottom&&shoes&&bottom.dark&&shoes.brown) return false;
+  if(layer&&layer.id==="denimJ"&&bottom&&bottom.denim) return false;
+  if(top&&top.sweater&&layer&&!["trench","brownCoat"].includes(layer.id)) return false;
+  if(top&&top.sleeve&&layer&&!["trench","blazer"].includes(layer.id)) return false;
+  if(layer&&layer.id==="blueCardi"&&top&&!top.fit) return false;
+  if(belt&&bottom&&!bottom.belt&&top&&!top.bo) return false;
+  return true;
+}
+function seasonOf(list){let s="SMC";for(const x of list){s=[...s].filter(c=>x.s.includes(c)).join("")}return s}
+const lc=s=>s.charAt(0).toLowerCase()+s.slice(1);
+function tips(list){
+  const t=[], g=s=>list.find(x=>x.slot===s);
+  const top=g("top"),bottom=g("bottom"),layer=g("layer"),shoes=g("shoes"),belt=g("belt");
+  if(top&&bottom&&(bottom.wide||bottom.id==="bermuda")&&!top.notuck) t.push("Заправь верх хотя бы спереди — так видна талия.");
+  if(top&&bottom&&top.over&&bottom.mini) t.push("Объёмный верх и короткий низ — лучшая пропорция для тебя. Заправь спереди или затяни ремень.");
+  if(top&&["shirtWhite","shirtBlue"].includes(top.id)) t.push("Рукава закатай до локтя, две верхние пуговицы расстегни.");
+  if(top&&top.id==="greySw"&&!layer) t.push("Свитер можно завязать на плечах — небрежная деталь с референсов.");
+  if(top&&bottom&&top.pat==="set"&&bottom.pat==="set") t.push("Это комплект из одной ткани — носи как костюм.");
+  if(layer&&["trench","blazer","brownCoat"].includes(layer.id)&&bottom&&bottom.wide) t.push(`${layer.n} носи нараспашку: длинная вертикаль вытягивает силуэт.`);
+  if(layer&&layer.id==="blazer"&&top&&["corset","lace","bodyB"].includes(top.id)) t.push("Пусть топ выглядывает из пиджака, украшения тонкие.");
+  if(top&&top.id==="corset") t.push("Корсет сам держит талию — ремень и заправка не нужны.");
+  if(layer&&layer.id==="leather") t.push("Пояс куртки затяни или завяжи узлом на талии.");
+  if(layer&&layer.id==="brownCoat") t.push("Пальто короткое — низ должен сидеть на талии.");
+  if(shoes&&shoes.id==="loafers") t.push("Лоферы — с белыми носками днём, на голую ногу вечером.");
+  if(shoes&&["nb","samba","scBrown","scBlack","dunk"].includes(shoes.id)&&bottom&&(bottom.id==="bermuda"||bottom.mini)) t.push("Белые носки к кроссовкам продолжают линию ноги.");
+  if(shoes&&shoes.id==="bootsK") t.push("На каблуке долго не погуляешь — это пара на выход.");
+  if(belt&&bottom&&!bottom.belt) t.push("Ремень носи поверх рубашки или свитера на талии.");
+  if(bottom&&!belt&&bottom.belt&&top&&!top.notuck) t.push("Добавь ремень: заправленный верх держится, талия видна.");
+  const loud=list.find(x=>x.loud); if(loud&&list.length>2) t.push(`${loud.n} — главный акцент, всё остальное тихое.`);
+  if(top&&bottom&&top.id==="polo"&&bottom.id==="trGrey") t.push("Серое на сером — колонна тон в тон, самый быстрый способ выглядеть дорого.");
+  if(top&&["shirtWhite","shirtBlue","shirtLinen"].includes(top.id)&&seasonOf(list).includes("S")) t.push("В жару рубашка закрывает плечи — подходит и для храмов.");
+  return t;
+}
+
+/* ---------- состояние ---------- */
+const st={pick:{},wx:"",occ:"",edit:{}};
+const picked=()=>ORDER.map(k=>st.pick[k]).filter(Boolean).map(id=>BY[id]);
+function options(slot){
+  const others=picked().filter(x=>x.slot!==slot);
+  return I.filter(x=>x.slot===slot&&ok([...others,x],st.wx,st.occ));
+}
+
+/* ---------- сегментированный контрол: скользящий индикатор ---------- */
+function moveInd(seg){
+  const ind=seg.querySelector(".ind"), on=seg.querySelector('[aria-pressed="true"],[aria-selected="true"]');
+  if(!ind||!on) return;
+  ind.style.left=on.offsetLeft+"px"; ind.style.width=on.offsetWidth+"px";
+}
+const segs=()=>document.querySelectorAll(".seg");
+addEventListener("resize",()=>segs().forEach(moveInd));
+
+/* ---------- слоты: DOM строится один раз, дальше только переключаем ---------- */
+function buildSlots(){
+  $("slots").innerHTML=ORDER.map(slot=>`
+  <section class="slot glass" id="slot-${slot}" aria-labelledby="h-${slot}">
+    <div class="slot-h"><h3 id="h-${slot}">${SL[slot]}</h3>${REQ[slot]?"":'<span class="opt">по желанию</span>'}<span class="badge num" id="b-${slot}"></span></div>
+    <div class="sel" id="sel-${slot}" hidden></div>
+    <div class="slot-body"><div>
+      <div class="chips">${I.filter(x=>x.slot===slot).map(x=>`<button type="button" class="chip" data-id="${x.id}" aria-pressed="false">${x.n}</button>`).join("")}</div>
+      <p class="none" id="none-${slot}" hidden>С выбранными вещами сюда ничего не подходит. Сними одну из них в карточке «Твой образ».</p>
+      <p class="hint num" id="hint-${slot}" hidden></p>
+    </div></div>
+  </section>`).join("");
+}
+function renderSlots(){
+  for(const slot of ORDER){
+    const el=$("slot-"+slot), opts=new Set(options(slot).map(x=>x.id)), sel=st.pick[slot];
+    const total=I.filter(x=>x.slot===slot).length, n=opts.size;
+    const collapsed=!!sel&&!st.edit[slot];
+    el.classList.toggle("done",collapsed);
+    el.querySelectorAll(".chip").forEach(c=>{
+      const id=c.dataset.id, on=sel===id;
+      c.setAttribute("aria-pressed",on?"true":"false");
+      if(opts.has(id)||on) c.removeAttribute("data-off"); else c.setAttribute("data-off","");
+      c.tabIndex=collapsed?-1:0;
+    });
+    const b=$("b-"+slot); b.textContent=sel?"✓":`${n}`; b.classList.toggle("on",!!sel);
+    b.setAttribute("aria-label",sel?"выбрано":`подходит ${n}`);
+    const s=$("sel-"+slot);
+    if(collapsed){ s.hidden=false; s.innerHTML=`<span class="chip" aria-pressed="true">${BY[sel].n}</span><button type="button" class="link" data-edit="${slot}">Изменить</button>`; }
+    else s.hidden=true;
+    $("none-"+slot).hidden=n>0||!!sel;
+    const hid=total-n, h=$("hint-"+slot);
+    h.hidden=!(hid>0&&n>0&&!sel); h.textContent=`Скрыто ${hid} — не сочетаются с выбранным`;
+  }
+}
+
+/* ---------- лист «Твой образ» ---------- */
+function renderSheet(bump){
+  const list=picked(), need=REQK.filter(k=>!st.pick[k]);
+  const ready=need.length===0;
+  $("sheetTitle").textContent=!list.length?"Выбери первую вещь":ready?"Образ готов":`Осталось: ${need.map(k=>SL[k].toLowerCase()).join(", ")}`;
+  $("sheetSum").textContent=list.length?list.map(x=>x.n).join(" · "):"пока ничего не выбрано";
+  const steps=$("steps").children;
+  REQK.forEach((k,i)=>{steps[i].className=ready?"all":st.pick[k]?"on":"";});
+  $("rows").innerHTML=ORDER.map(k=>{const id=st.pick[k];return `<li><span class="k">${SL[k]}</span>${id?`<span class="v">${BY[id].n}</span><button type="button" class="x" data-rm="${k}" aria-label="Убрать: ${BY[id].n}">✕</button>`:`<span class="v empty">${REQ[k]?"не выбрано":"—"}</span><span></span>`}</li>`}).join("");
+  const s=seasonOf(list);
+  $("wx").textContent=list.length?`Погода: ${[...s].map(c=>SEAS[c]).join(" · ")}`:"";
+  $("tips").innerHTML=tips(list).map(x=>`<li>${x}</li>`).join("");
+  const sh=$("sheet"); sh.classList.toggle("ready",ready);
+  const fill=$("fill"); fill.textContent=ready?"Другой вариант":"Собрать за меня";
+  $("save").disabled=!ready;
+  if(bump&&!reduce&&sh.animate) sh.animate([{transform:"translateY(0)"},{transform:"translateY(-4px)"},{transform:"translateY(0)"}],{duration:260,easing:"cubic-bezier(.34,1.3,.5,1)"});
+}
+function render(bump){renderSlots();renderSheet(bump)}
+
+/* ---------- действия ---------- */
+function nextOpen(){
+  const k=REQK.find(k=>!st.pick[k]); if(!k) return;
+  const el=$("slot-"+k); const r=el.getBoundingClientRect();
+  const off=document.querySelector(".topbar").offsetHeight+12;
+  if(r.top>innerHeight*.6||r.top<off){
+    const go=()=>scrollTo({top:el.getBoundingClientRect().top+scrollY-off,behavior:reduce?"auto":"smooth"});
+    go(); if(!reduce) setTimeout(()=>{const d=el.getBoundingClientRect().top-off; if(Math.abs(d)>16) go();},420);
+  }
+}
+function tick(){ if(navigator.vibrate) try{navigator.vibrate(6)}catch(e){} }
+$("slots").addEventListener("click",e=>{
+  const ed=e.target.closest("[data-edit]"); if(ed){st.edit[ed.dataset.edit]=true;render();return}
+  const b=e.target.closest(".chips [data-id]"); if(!b) return;
+  const x=BY[b.dataset.id], was=st.pick[x.slot]===x.id;
+  st.pick[x.slot]=was?undefined:x.id; st.edit[x.slot]=false; tick();
+  render(!was); if(!was) setTimeout(nextOpen,reduce?0:330);  // после сворачивания блока (--t .28s)
+});
+$("rows").addEventListener("click",e=>{const b=e.target.closest("[data-rm]"); if(!b) return; st.pick[b.dataset.rm]=undefined; st.edit[b.dataset.rm]=false; render();});
+$("reset").addEventListener("click",()=>{st.pick={};st.edit={};render();$("slot-bottom").scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});});
+$("fill").addEventListener("click",()=>{
+  const ready=REQK.every(k=>st.pick[k]);
+  const keep=ready?{}:{...st.pick};
+  if(ready){ // «Другой вариант»: оставляем первую вещь, остальное пересобираем
+    const first=st.first&&st.pick[BY[st.first].slot]===st.first?st.first:st.pick.bottom;
+    keep[BY[first].slot]=first;
+  }
+  for(let t=0;t<60;t++){
+    st.pick={...keep}; let fail=false;
+    for(const slot of ["bottom","top","shoes","bag"]){
+      if(st.pick[slot]) continue; const o=options(slot); if(!o.length){fail=true;break}
+      st.pick[slot]=o[Math.floor(Math.random()*o.length)].id;
+    }
+    if(!fail&&REQK.every(k=>st.pick[k])) break;
+  }
+  st.edit={}; tick(); render(true);
+  const f=$("fill"); f.classList.add("done"); setTimeout(()=>f.classList.remove("done"),600);
+});
+// запоминаем, с какой вещи начали — «Другой вариант» её сохранит
+const origRender=render;
+render=function(b){ const l=picked(); if(l.length===1) st.first=l[0].id; if(!l.length) st.first=null; origRender(b); };
+
+/* мобильный лист */
+$("sheetToggle").addEventListener("click",()=>{
+  if(!phone()) return;
+  const sh=$("sheet"), open=!sh.classList.contains("open");
+  sh.classList.toggle("open",open); $("sheetToggle").setAttribute("aria-expanded",open?"true":"false");
+});
+
+/* фильтры */
+function bindSeg(id,attr,key){
+  const seg=$(id);
+  seg.addEventListener("click",e=>{
+    const b=e.target.closest(`[data-${attr}]`); if(!b) return;
+    st[key]=b.dataset[attr];
+    seg.querySelectorAll(`[data-${attr}]`).forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false"));
+    moveInd(seg);
+    let ch=true; while(ch){ ch=false; for(const k of ORDER){ if(st.pick[k]&&!options(k).some(x=>x.id===st.pick[k])){st.pick[k]=undefined;ch=true} } }
+    render();
+  });
+}
+bindSeg("seg-w","w","wx"); bindSeg("seg-o","o","occ");
+
+/* ---------- вкладки ---------- */
+function show(view,scroll){
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id==="view-"+view));
+  document.querySelectorAll("[role=tab][data-view]").forEach(t=>t.setAttribute("aria-selected",t.dataset.view===view?"true":"false"));
+  segs().forEach(moveInd);
+  document.body.dataset.view=view;
+  $("sheet").hidden=view!=="build";
+  if(scroll!==false) scrollTo({top:0,behavior:"auto"});
+  try{history.replaceState(null,"","#"+view)}catch(e){}
+}
+document.querySelectorAll("[role=tablist]").forEach(tl=>tl.addEventListener("click",e=>{const t=e.target.closest("[data-view]"); if(t) show(t.dataset.view);}));
+
+/* ---------- каталог ---------- */
+function card(x){
+  const seas=[...x.s].map(c=>SEAS[c]).join(" · ");
+  return `<article class="card glass" data-cat="${x.cat}"><div class="meta"><span>${SL[x.slot]}</span><span>${seas}</span></div><h4>${x.n}</h4><p class="d">${x.d}</p><p class="w"><b>Как носить.</b> ${x.w}</p><button type="button" class="try" data-try="${x.id}">Собрать образ с этой вещью</button></article>`;
+}
+$("cards").innerHTML=I.map(card).join("");
+$("out").innerHTML=OUT.map(([n,w])=>`<article class="card glass muted"><h4>${n}</h4><p class="w">${w}</p></article>`).join("");
+$("catf").insertAdjacentHTML("afterbegin",`<button type="button" data-c="" aria-pressed="true">Все</button>`+CATS.map(([c,t])=>`<button type="button" data-c="${c}" aria-pressed="false">${t.split(",")[0].replace("Верхняя одежда и жакеты","Верх. одежда")}</button>`).join(""));
+$("catf").addEventListener("click",e=>{
+  const b=e.target.closest("[data-c]"); if(!b) return;
+  $("catf").querySelectorAll("[data-c]").forEach(x=>x.setAttribute("aria-pressed",x===b?"true":"false")); moveInd($("catf"));
+  document.querySelectorAll("#cards .card").forEach(c=>{ if(!b.dataset.c||c.dataset.cat===b.dataset.c) c.removeAttribute("data-off"); else c.setAttribute("data-off",""); });
+});
+$("cards").addEventListener("click",e=>{
+  const b=e.target.closest("[data-try]"); if(!b) return;
+  const x=BY[b.dataset.try];
+  st.pick={}; st.edit={}; st.wx=""; st.occ="";
+  document.querySelectorAll("#seg-w [data-w],#seg-o [data-o]").forEach(y=>y.setAttribute("aria-pressed",(y.dataset.w===""||y.dataset.o==="")?"true":"false"));
+  st.pick[x.slot]=x.id; show("build"); render(true); setTimeout(nextOpen,60);
+});
+
+/* ---------- карточка образа картинкой ---------- */
+const OCCN={walk:"прогулка",meet:"город",eve:"вечер"};
+const SW=[[/чёрн|black/i,"#1E1F22"],[/бел|white/i,"#F5F3EE"],[/голуб/i,"#A9BFD8"],[/васил|син/i,"#3558B0"],[/сер/i,"#9B9DA2"],[/шоколад|коричн|birken|speedcat кор|dunk/i,"#5B3A2C"],[/молоч|крем/i,"#EFE6D6"],[/stone|беж/i,"#D8CFC0"],[/джинс|бермуд/i,"#7F9DBF"],[/олив/i,"#6E6B3E"],[/жёлт/i,"#E3C04B"],[/new balance/i,"#C9CCD1"],[/gucci/i,"#8A6E4B"],[/samba/i,"#F2F2F2"],[/платок/i,"#E9E3D6"]];
+const swatch=n=>{for(const [r,c] of SW) if(r.test(n)) return c; return "#C8C8CC"};
+function rr(x,X,Y,W,H,R){x.beginPath();x.moveTo(X+R,Y);x.arcTo(X+W,Y,X+W,Y+H,R);x.arcTo(X+W,Y+H,X,Y+H,R);x.arcTo(X,Y+H,X,Y,R);x.arcTo(X,Y,X+W,Y,R);x.closePath()}
+function wrapT(x,t,w){const out=[];let line="";for(const word of t.split(" ")){const tt=line?line+" "+word:word;if(x.measureText(tt).width>w&&line){out.push(line);line=word}else line=tt}if(line)out.push(line);return out}
+function drawCard(){
+  const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+  const F='-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Roboto,Arial,sans-serif';
+  const list=picked(), tp=tips(list).slice(0,2);
+  // фон
+  x.fillStyle="#EEF0F3";x.fillRect(0,0,W,H);
+  for(const [cx,cy,r,col] of [[120,80,720,"201,215,232"],[1000,420,620,"230,217,200"],[380,1320,640,"217,199,188"],[960,1260,520,"244,241,234"]]){
+    const g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,`rgba(${col},1)`);g.addColorStop(1,`rgba(${col},0)`);x.fillStyle=g;x.fillRect(0,0,W,H);}
+  // стеклянная карточка
+  const P=64,CX=P,CY=P,CW=W-2*P,CH=H-2*P;
+  x.save();x.shadowColor="rgba(28,28,30,.12)";x.shadowBlur=60;x.shadowOffsetY=18;rr(x,CX,CY,CW,CH,56);x.fillStyle="rgba(255,255,255,.62)";x.fill();x.restore();
+  rr(x,CX,CY,CW,CH,56);x.lineWidth=2;x.strokeStyle="rgba(255,255,255,.95)";x.stroke();
+  const L=CX+64, R=CX+CW-64, TW=R-L;
+  // логотип
+  const g2=x.createLinearGradient(L,CY+60,L+72,CY+132);g2.addColorStop(0,"#3E6491");g2.addColorStop(1,"#26405F");
+  rr(x,L,CY+60,72,72,20);x.fillStyle=g2;x.fill();
+  x.save();x.translate(L+12,CY+72);x.scale(2,2);x.strokeStyle="#fff";x.lineWidth=1.8;x.lineCap="round";x.lineJoin="round";
+  x.stroke(new Path2D("M12 5.2a1.9 1.9 0 1 1 1.9 1.9c-.9 0-1.9.6-1.9 1.6v1.1L4.3 15.2c-.9.6-.5 2 .6 2h14.2c1.1 0 1.5-1.4.6-2L12 9.8"));x.restore();
+  x.fillStyle="#1C1C1E";x.font=`700 36px ${F}`;x.textBaseline="middle";x.fillText("Мой шкаф",L+96,CY+96);
+  x.textAlign="right";x.fillStyle="rgba(60,60,67,.62)";x.font=`500 28px ${F}`;
+  x.fillText(new Date().toLocaleDateString("ru",{day:"numeric",month:"long"}),R,CY+96);x.textAlign="left";
+  // заголовок и чипы
+  let y=CY+250;
+  x.fillStyle="#1C1C1E";x.font=`800 84px ${F}`;x.textBaseline="alphabetic";x.fillText("Мой образ",L,y);
+  y+=46;
+  const chips=[[...seasonOf(list)].map(k=>SEAS[k]).join(" · ")];if(st.occ)chips.push(OCCN[st.occ]);
+  x.font=`600 26px ${F}`;let cx=L;
+  for(const t of chips){const w=x.measureText(t).width+44;rr(x,cx,y,w,50,25);x.fillStyle="rgba(62,100,145,.12)";x.fill();x.fillStyle="#3E6491";x.textBaseline="middle";x.fillText(t,cx+22,y+26);cx+=w+12}
+  y+=96;
+  // палитра образа
+  const dots=list.map(i=>swatch(i.n));
+  dots.forEach((col,i)=>{x.beginPath();x.arc(L+34+i*58,y,26,0,Math.PI*2);x.fillStyle=col;x.fill();x.lineWidth=3;x.strokeStyle="rgba(255,255,255,.95)";x.stroke();});
+  y+=58;
+  // строки: подгоняем размер, чтобы всё поместилось
+  const rows=ORDER.filter(k=>st.pick[k]).map(k=>[SL[k].toUpperCase(),BY[st.pick[k]].n]);
+  const bottomLimit=CY+CH-(tp.length?64:40)-40;
+  let fs=40,layout;
+  for(;fs>=28;fs-=2){
+    x.font=`500 ${fs}px ${F}`;let yy=y;const lay=[];
+    for(const [k,v] of rows){const ls=wrapT(x,v,TW-230);lay.push([k,ls,yy]);yy+=Math.max(ls.length*fs*1.22,fs*1.22)+34;}
+    let ty=yy+10;x.font=`400 ${Math.round(fs*.72)}px ${F}`;const tl=tp.map(t=>wrapT(x,t,TW-36));
+    const tipH=tl.reduce((a,l)=>a+l.length*fs*.72*1.35+14,0);
+    layout={lay,ty,tl,fs};if(ty+tipH<bottomLimit)break;
+  }
+  x.textBaseline="top";
+  layout.lay.forEach(([k,ls,yy],i)=>{
+    x.fillStyle="rgba(60,60,67,.62)";x.font=`700 ${Math.round(layout.fs*.55)}px ${F}`;
+    x.save();x.letterSpacing="2px";x.fillText(k,L,yy+layout.fs*.3);x.restore();
+    x.fillStyle="#1C1C1E";x.font=`500 ${layout.fs}px ${F}`;ls.forEach((l,j)=>x.fillText(l,L+230,yy+j*layout.fs*1.22));
+    const by=yy+Math.max(ls.length,1)*layout.fs*1.22+16;
+    if(i<layout.lay.length-1){x.fillStyle="rgba(60,60,67,.14)";x.fillRect(L,by,TW,2);}
+  });
+  // советы
+  let ty=layout.ty+8;const tf=Math.round(layout.fs*.72);x.font=`400 ${tf}px ${F}`;
+  layout.tl.forEach(ls=>{x.beginPath();x.arc(L+8,ty+tf*.62,5,0,Math.PI*2);x.fillStyle="#3E6491";x.fill();x.fillStyle="rgba(60,60,67,.8)";ls.forEach((l,j)=>x.fillText(l,L+30,ty+j*tf*1.35));ty+=ls.length*tf*1.35+14;});
+  // подпись
+  x.textBaseline="alphabetic";x.fillStyle="rgba(60,60,67,.4)";x.font=`500 24px ${F}`;x.fillText("собрано в «Мой шкаф»",L,CY+CH-44);
+  return c;
+}
+let cardBlob=null, dl=null;
+if(window.claude&&typeof window.claude.use==="function") window.claude.use("downloads").then(n=>{dl=n}).catch(()=>{});
+function openCard(){
+  if(!REQK.every(k=>st.pick[k])) return;
+  const c=drawCard(); $("mImg").src=c.toDataURL("image/png"); cardBlob=null;
+  c.toBlob(b=>{cardBlob=b},"image/png");
+  $("mHint").classList.remove("strong"); $("modal").hidden=false; document.body.style.overflow="hidden"; $("mSave").focus();
+}
+function closeCard(){ $("modal").hidden=true; document.body.style.overflow=""; $("save").focus(); }
+$("save").addEventListener("click",openCard);
+$("mClose").addEventListener("click",closeCard);
+$("modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeCard(); });
+addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("modal").hidden) closeCard(); });
+$("mSave").addEventListener("click",async()=>{
+  const name=`obraz-${new Date().toISOString().slice(0,10)}.png`;
+  const blob=cardBlob||await (await fetch($("mImg").src)).blob();
+  const file=new File([blob],name,{type:"image/png"});
+  if(dl){ // внутри Claude: сохранение через платформу
+    try{ await dl.save({filename:name,data:blob}); $("mHint").textContent="Готово: картинка сохранена."; }
+    catch(err){ if(err&&err.code==="declined") return; $("mHint").classList.add("strong"); }
+    return;
+  }
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:"Мой образ"}); return; }
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    $("mHint").textContent="Картинка сохранена в «Загрузки». Если её там нет, удержи картинку и выбери «Сохранить в Фото».";
+  }catch(err){ if(err&&err.name==="AbortError") return; $("mHint").classList.add("strong"); }
+});
+
+/* логотип — на главную */
+$("brand").addEventListener("click",e=>{ e.preventDefault(); show("build"); scrollTo({top:0,behavior:reduce?"auto":"smooth"}); });
+
+/* ---------- счётчик сочетаний ---------- */
+(function(){
+  const T=I.filter(x=>x.slot==="top"),B=I.filter(x=>x.slot==="bottom"),S=I.filter(x=>x.slot==="shoes");let n=0;
+  for(const t of T)for(const b of B){ if(!ok([t,b]))continue; for(const s of S) if(ok([t,b,s])) n++; }
+  $("stat").textContent=`${I.length} вещей · ${n.toLocaleString("ru")} сочетаний верха, низа и обуви`;
+})();
+
+/* ---------- старт ---------- */
+buildSlots();
+const start=(location.hash||"").slice(1);
+show(["build","closet","rules"].includes(start)?start:"build",false);
+if(!start){ st.pick.bottom="trBlack"; }   // рабочий пример при первом открытии
+render();
+requestAnimationFrame(()=>segs().forEach(moveInd));
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>segs().forEach(moveInd));
+
+/* для тестов */
+window.__closet={st,BY,ok,options,picked,ORDER,I,render:(b)=>render(b)};
+})();
+
+</script>
+</body>
+</html>

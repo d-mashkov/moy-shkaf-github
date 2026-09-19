@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EEF0F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1114" media="(prefers-color-scheme: dark)">
+<title>Мой шкаф</title>
+<meta name="description" content="Гардероб с описанием вещей и конструктор образов: выбираешь одну вещь — остаются только подходящие.">
+<link rel="stylesheet" href="css/app.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><span class="b1"></span><span class="b2"></span><span class="b3"></span><span class="b4"></span></div>
+
+<header class="topbar glass">
+  <a class="brand" href="#build" id="brand" aria-label="Мой шкаф — на главную"><span class="brand-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.2a1.9 1.9 0 1 1 1.9 1.9c-.9 0-1.9.6-1.9 1.6v1.1L4.3 15.2c-.9.6-.5 2 .6 2h14.2c1.1 0 1.5-1.4.6-2L12 9.8"/></svg></span><span class="brand-t"><span class="brand-n">Мой шкаф</span><span class="sub">гардероб и образы</span></span></a>
+  <nav class="topnav" aria-label="Разделы">
+    <div class="seg" id="topseg" role="tablist">
+      <button type="button" role="tab" data-view="build" aria-selected="true">Собрать образ</button>
+      <button type="button" role="tab" data-view="closet" aria-selected="false">Гардероб</button>
+      <button type="button" role="tab" data-view="rules" aria-selected="false">Правила</button>
+      <span class="ind" aria-hidden="true"></span>
+    </div>
+  </nav>
+</header>
+
+<main class="wrap">
+
+<!-- ============ КОНСТРУКТОР ============ -->
+<section class="view active" id="view-build" role="tabpanel">
+  <div class="hero">
+    <h2>Собери образ</h2>
+    <p>Начни с любой вещи. Неподходящие исчезают сами: по погоде, поводу, цвету обуви, узорам и твоим правилам. Низ, верх и обувь обязательны, остальное по желанию.</p>
+    <p class="footnote num" id="stat"></p>
+  </div>
+
+  <div class="filters glass" id="filters">
+    <div class="f"><span class="caption">Погода</span>
+      <div class="seg" id="seg-w" role="group" aria-label="Погода">
+        <button type="button" data-w="" aria-pressed="true">Любая</button>
+        <button type="button" data-w="S" aria-pressed="false">Жара</button>
+        <button type="button" data-w="M" aria-pressed="false">+10…19</button>
+        <button type="button" data-w="C" aria-pressed="false">Холод</button>
+        <span class="ind" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div class="f"><span class="caption">Повод</span>
+      <div class="seg" id="seg-o" role="group" aria-label="Повод">
+        <button type="button" data-o="" aria-pressed="true">Любой</button>
+        <button type="button" data-o="walk" aria-pressed="false">Прогулка</button>
+        <button type="button" data-o="meet" aria-pressed="false">Город</button>
+        <button type="button" data-o="eve" aria-pressed="false">Вечер</button>
+        <span class="ind" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="build">
+    <div class="slots" id="slots"></div>
+
+    <aside class="sheet glass" id="sheet" aria-live="polite">
+      <button type="button" class="sheet-h" id="sheetToggle" aria-expanded="false" aria-controls="sheetBody">
+        <div class="t">
+          <h2 id="sheetTitle">Выбери первую вещь</h2>
+          <span class="sum" id="sheetSum">пока ничего не выбрано</span>
+        </div>
+        <div class="steps" id="steps" aria-label="Обязательные: низ, верх, обувь"><i></i><i></i><i></i></div>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 14l6-6 6 6"/></svg>
+      </button>
+      <div class="sheet-body" id="sheetBody"><div>
+        <ul class="rows" id="rows"></ul>
+        <span class="wx" id="wx"></span>
+        <ul class="tips" id="tips"></ul>
+        <div class="acts">
+          <button type="button" class="btn primary" id="fill">Собрать за меня</button>
+          <button type="button" class="btn quiet" id="reset">Сбросить</button>
+          <button type="button" class="btn icon" id="save" aria-label="Сохранить образ картинкой" title="Сохранить картинкой"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0l-4-4m4 4l4-4M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg></button>
+        </div>
+      </div></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ ГАРДЕРОБ ============ -->
+<section class="view" id="view-closet" role="tabpanel">
+  <div class="hero">
+    <h2>Гардероб</h2>
+    <p>Каждая вещь с описанием и советом, как её носить. Кнопка под карточкой переносит вещь в конструктор.</p>
+  </div>
+  <div class="catf"><div class="seg" id="catf" role="group" aria-label="Раздел"><span class="ind" aria-hidden="true"></span></div></div>
+  <div class="cards" id="cards"></div>
+</section>
+
+<!-- ============ ПРАВИЛА ============ -->
+<section class="view" id="view-rules" role="tabpanel">
+  <div class="hero">
+    <h2>Как работает подбор</h2>
+    <p>Правила, по которым конструктор скрывает неподходящее.</p>
+  </div>
+  <div class="rules">
+    <div class="rule glass"><strong>Погода</strong><p>У каждой вещи свой сезон. Шорты и Birkenstock не встретятся с шерстью и сапогами.</p></div>
+    <div class="rule glass"><strong>Повод</strong><p>Кроссовки не попадут к корсету, а слингбэки — к бермудам. Уровень нарядности должен совпадать.</p></div>
+    <div class="rule glass"><strong>Обувь в тон низа</strong><p>К чёрным брюкам и мини только чёрная или нейтральная обувь, коричневая замша уходит.</p></div>
+    <div class="rule glass"><strong>Один узор, один акцент</strong><p>Две разные полоски, клетка с принтом, два громких предмета или два логотипа вместе не появятся.</p></div>
+    <div class="rule glass"><strong>Крой к крою</strong><p>Свитер только под тренч или пальто. Рукава-фонарики только под свободный пиджак. Двойного денима нет.</p></div>
+    <div class="rule glass"><strong>Твои решения</strong><p>Поло не сочетается с юбками, бермуды не носятся с Birkenstock.</p></div>
+  </div>
+  <div class="hero"><h2>Не участвуют в образах</h2><p>Вещи, которые мы решили отпустить, и спортивные.</p></div>
+  <div class="cards" id="out"></div>
+  <footer>Вердикты даны по фото и примеркам. Новую вещь проверяй правилом «три образа с тем, что уже есть»: если конструктор собирает с ней меньше трёх, это повод подумать.</footer>
+</section>
+
+</main>
+
+<nav class="tabbar glass" aria-label="Разделы">
+  <div class="seg" id="tabseg" role="tablist">
+    <button type="button" role="tab" data-view="build" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 4.5L20 9l-4 4 1 5.5-5-2.6-5 2.6 1-5.5-4-4 5.5-1.5z"/></svg>Образ</button>
+    <button type="button" role="tab" data-view="closet" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 4v2m0 0c-1.5 0-2.5 1-2.5 2.2 0 1 .6 1.5 2.5 2.6L4 15.5V18h16v-2.5L12 10.8"/></svg>Гардероб</button>
+    <button type="button" role="tab" data-view="rules" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>Правила</button>
+    <span class="ind" aria-hidden="true"></span>
+  </div>
+</nav>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" hidden>
+  <div class="modal-card glass">
+    <div class="modal-h"><h2 id="mTitle">Карточка образа</h2><button type="button" class="x" id="mClose" aria-label="Закрыть">✕</button></div>
+    <img id="mImg" alt="Карточка собранного образа">
+    <div class="acts"><button type="button" class="btn primary" id="mSave">Сохранить на телефон</button></div>
+    <p class="footnote" id="mHint">Если кнопка не сработала, удержи картинку пальцем и выбери «Сохранить в Фото».</p>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
